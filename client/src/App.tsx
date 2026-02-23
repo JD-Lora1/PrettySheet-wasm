@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import init, { process_excel } from "./wasm/engine";
+import init, { process_excel } from "./wasm/engine.js";
 import { useDropzone } from 'react-dropzone';
 import { SketchPicker } from 'react-color';
 
@@ -66,12 +66,12 @@ const App: React.FC = () => {
           return;
         }
 
-        console.log('Calling process_excel with:', { fileData, autoFit, headerColor });
+        console.log('Calling process_excel with:', { fileData });
 
         // Updated to handle Uint8Array return type
-        const result = await process_excel(fileData, autoFit, headerColor);
+        const result = await process_excel(fileData);
 
-        const blob = new Blob([result.buffer], {
+        const blob = new Blob([new Uint8Array(result)], {
           type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
         });
         setProcessedFile(blob);
@@ -91,19 +91,20 @@ const App: React.FC = () => {
     if (!uploadedFile || !wasmReady) return;
 
     setLoading(true);
-    setError(null);
-
     try {
-      // Updated to handle Uint8Array return type
-      const result = await process_excel(uploadedFile, autoFit, headerColor);
+      // Call the Rust engine
+      const result = await process_excel(uploadedFile);
 
-      const blob = new Blob([result.buffer], {
+      // Create the Blob for download using the result
+      const blob = new Blob([new Uint8Array(result)], {
         type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
       });
+
       setProcessedFile(blob);
-    } catch (err) {
-      console.error('Error re-processing:', err);
-      setError('Failed to update file with new settings.');
+      setError(null);
+    } catch (err: any) {
+      console.error('Error procesando:', err);
+      setError(err);
     } finally {
       setLoading(false);
     }
@@ -119,8 +120,8 @@ const App: React.FC = () => {
     setError(null);
 
     try {
-      const result = await process_excel(uploadedFile, autoFit, headerColor);
-      const blob = new Blob([result.buffer], { 
+      const result = await process_excel(uploadedFile);
+      const blob = new Blob([new Uint8Array(result)], { 
         type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
       });
       setProcessedFile(blob);

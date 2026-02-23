@@ -8,11 +8,8 @@ build/
 Thumbs.db
 
 # --- Rust / WebAssembly ---
-# Ignora los binarios y artefactos de compilación de Rust
-**/target/
-# Ignora el paquete generado por wasm-pack (se genera al compilar)
-**/pkg/
-# Opcional: Si no quieres subir los archivos generados dentro de React
+target/
+pkg/
 client/src/wasm/
 
 # --- Logs & Debug ---
@@ -20,12 +17,22 @@ client/src/wasm/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+# Logs de pánico de Rust
+panic.txt
 
-# --- IDEs ---
+# --- IDEs & OS ---
 .vscode/
+# !.vscode/extensions.json 
 .idea/
 *.swp
 *.swo
+.history/
 
-# --- Vite ---
+# --- Vite & Frontend ---
 .vite/
+.next/
+out/
+
+# --- Lockfiles --- Mantenidos para consistencia, pero pueden ser ignorados
+# Cargo.lock
+# package-lock.json

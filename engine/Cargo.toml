@@ -4,14 +4,23 @@ version = "0.1.0"
 edition = "2021"
 
 [lib]
-crate-type = ["cdylib"]
+crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 wasm-bindgen = "0.2"
-rust_xlsxwriter = { version = "0.76.0", features = ["js-sys"] }
-calamine = "0.24.0"
-serde = { version = "1.0", features = ["derive"] }
-serde-wasm-bindgen = "0.6.5"
-console_error_panic_hook = "0.1.7"
-web-sys = { version = "0.3", features = ["console"] }
 js-sys = "0.3"
+console_error_panic_hook = "0.1.7"
+
+chrono = { version = "0.4", features = ["wasmbind", "js-sys"] }
+#rust_xlsxwriter = { version = "0.76.0", default-features = false, features = ["js-sys"] }
+rust_xlsxwriter = { version = "0.76.0", features = ["wasm"] }
+
+calamine = { version = "0.24", default-features = false }
+
+getrandom = { version = "0.2", features = ["js"] }
+
+[dev-dependencies]
+wasm-bindgen-test = "0.3"
+
+[profile.release]
+debug = true

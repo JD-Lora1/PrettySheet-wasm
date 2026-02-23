@@ -64,16 +64,32 @@ cd client
 npm run build
 ```
 
-## Troubleshooting (Errores Comunes)
-### RuntimeError: unreachable executed
+## Probar Build:
+    Bash
 
-Si ves este error acompañado de un mensaje sobre time not implemented:
+    npx serve dist
 
-Asegúrate de que el Cargo.toml tenga la feature js-sys activada para rust_xlsxwriter.
+# Nota: Asegúrate de limpiar la caché del navegador para cargar el archivo .wasm actualizado.
 
-En el código de Rust, utiliza workbook.set_creation_time(0); para evitar llamadas al reloj del sistema.
+```bash
+cd ~/projects/PrettySheet-wasm/engine/
+rm -rf ../client/src/wasm
+mkdir -p ../client/src/wasm
+cargo clean
+wasm-pack build --target web --release
+cp -r pkg/* ../client/src/wasm/
+cd ..
+cd client/
+rm -rf node_modules/.vite
+npm run dev -- --force
 
-Limpia el cache del navegador o abre una pestaña de incógnito para asegurar que se cargue el nuevo binario .wasm.
+```
+
+y para test desde engine
+```bash
+cargo clean
+wasm-pack test --node
+```
 
 ## 📄 Licence
 Apache 2.0
