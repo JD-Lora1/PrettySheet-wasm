@@ -3,6 +3,10 @@ use rust_xlsxwriter::{Workbook, DocProperties, Format, Color};
 use calamine::{Reader, Xlsx, DataType};
 use std::io::Cursor;
 
+pub mod preview;
+
+pub use preview::extract_preview; 
+
 #[wasm_bindgen(start)]
 pub fn init() {
     console_error_panic_hook::set_once();
