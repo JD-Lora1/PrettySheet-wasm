@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import init, { process_excel } from "./wasm/engine.js";
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import init, { process_excel, PipelineConfig } from "./wasm/engine.js";
 import { useDropzone } from 'react-dropzone';
 import { SketchPicker } from 'react-color';
 
@@ -13,6 +13,25 @@ const App: React.FC = () => {
   const [processedFile, setProcessedFile] = useState<Blob | null>(null);
   const [headers, setHeaders] = useState<string[]>([]);
   const [previewData, setPreviewData] = useState<string[][] | null>(null);
+  const reprocessDebounced = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (!uploadedFile || !wasmReady) return;
+
+    if (reprocessDebounced.current) {
+      clearTimeout(reprocessDebounced.current);
+    }
+
+    reprocessDebounced.current = setTimeout(() => {
+      handleReProcess();
+    }, 300);
+
+    return () => {
+      if (reprocessDebounced.current) {
+        clearTimeout(reprocessDebounced.current);
+      }
+    };
+  }, [headerColor, autoFit, uploadedFile, wasmReady]);
 
   useEffect(() => {
     const initializeWasm = async () => {
@@ -30,7 +49,7 @@ const App: React.FC = () => {
     if (uploadedFile && wasmReady) {
       handleReProcess();
     }
-  }, [headerColor, autoFit]);
+  }, [headerColor, autoFit, uploadedFile, wasmReady]);
 
   const validateInputs = (fileData: Uint8Array, headerColor: string): boolean => {
     if (!fileData || fileData.length === 0) {
@@ -69,7 +88,8 @@ const App: React.FC = () => {
         console.log('Calling process_excel with:', { fileData });
 
         // Updated to handle Uint8Array return type
-        const result = await process_excel(fileData);
+        const config = new PipelineConfig(true, autoFit, true);
+        const result = await process_excel(fileData, config);
 
         const blob = new Blob([new Uint8Array(result)], {
           type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
@@ -92,8 +112,11 @@ const App: React.FC = () => {
 
     setLoading(true);
     try {
-      // Call the Rust engine
-      const result = await process_excel(uploadedFile);
+      // Create a PipelineConfig instance
+      const config = new PipelineConfig(true, autoFit, true);
+
+      // Call the Rust engine with the new pipeline function and config
+      const result = await process_excel(uploadedFile, config);
 
       // Create the Blob for download using the result
       const blob = new Blob([new Uint8Array(result)], {
@@ -103,7 +126,7 @@ const App: React.FC = () => {
       setProcessedFile(blob);
       setError(null);
     } catch (err: any) {
-      console.error('Error procesando:', err);
+      console.error('Error processing:', err);
       setError(err);
     } finally {
       setLoading(false);
@@ -120,7 +143,8 @@ const App: React.FC = () => {
     setError(null);
 
     try {
-      const result = await process_excel(uploadedFile);
+      const config = new PipelineConfig(true, autoFit, true);
+      const result = await process_excel(uploadedFile, config);
       const blob = new Blob([new Uint8Array(result)], { 
         type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
       });
