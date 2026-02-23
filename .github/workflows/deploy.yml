@@ -1,0 +1,49 @@
+name: Deploy PrettySheet
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      # 1. Configurar Rust y wasm-pack
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install wasm-pack
+        run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+
+      # 2. Compilar el Motor (Rust a WASM)
+      - name: Build Rust Engine
+        run: |
+          cd engine
+          wasm-pack build --target web --release
+
+      # 3. Preparar el Cliente (React)
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: client/package-lock.json
+
+      - name: Sync WASM to Client and Build
+        run: |
+          mkdir -p client/src/wasm
+          cp -r engine/pkg/* client/src/wasm/
+          cd client
+          npm install
+          # Importante: Ajusta el base path si tu repo no es 'username.github.io'
+          npm run build -- --base=/${{ github.event.repository.name }}/
+
+      # 4. Desplegar la carpeta dist de React
+      - name: Deploy to GitHub Pages
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: client/dist
+          branch: gh-pages

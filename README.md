@@ -1,48 +1,79 @@
-PrettySheet-wasm 🚀
+# PrettySheet-wasm 🚀
 
-Optimización de Excel mediante Rust (WASM) + React.
-🛠️ Desarrollo (Modo Dev)
+[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![Deploy PrettySheet wasm](https://github.com/JD-Lora1/PrettySheet-WASM/actions/workflows/deploy.yml/badge.svg)](https://github.com/JD-Lora1/PrettySheet-WASM/actions)
 
-    Motor (Rust):
-    Entra a la carpeta del motor y compila los bindings:
-    Bash
+Optimización y formateo automático de archivos Excel utilizando la potencia de **Rust (WebAssembly)** en el backend y la agilidad de **React + Vite** en el frontend.
 
-    cd engine
-    wasm-pack build --target web
+## Arquitectura
+Este proyecto es un **monorepo** diseñado para procesar archivos pesados directamente en el navegador del cliente, sin enviar datos a un servidor:
 
-    Cliente (React):
-    En otra terminal, instala las dependencias e inicia Vite:
-    Bash
+- **`/engine`**: Motor lógico en Rust. Utiliza `calamine` para lectura y `rust_xlsxwriter` para generación de archivos.
+- **`/client`**: Aplicación React (TypeScript) que consume el módulo WASM y gestiona la UI con Tailwind CSS.
 
-    cd client
-    npm install
-    npm run dev
+---
 
-📦 Producción (Build)
+## Configuración de Desarrollo
 
-    Compilar Rust (Optimizado):
-    Bash
+### 1. Requisitos previos
+* [Rust & Cargo](https://rustup.rs/)
+* [wasm-pack](https://rustwasm.github.io/wasm-pack/installer/)
+* [Node.js & npm](https://nodejs.org/)
 
-    cd engine
-    wasm-pack build --target web --release
-
-    Compilar React:
-    Bash
-
-    cd client
-    npm run build
-
-    Probar Build:
-    Bash
-
-    npx serve dist
-
-cd ~/projects/PrettySheet-wasm/engine/
-rm -rf ../client/src/wasm
-mkdir -p ../client/src/wasm
-cargo clean
+### 2. Preparar el Motor (Rust)
+Desde la raíz del proyecto, compila los bindings de WebAssembly:
+```bash
+cd engine
 wasm-pack build --target web
-cp -r pkg/* ../client/src/wasm/
-cd ..
+```
+
+3. Sincronizar y Lanzar el Cliente (React)
+
+Debes copiar los archivos generados en engine/pkg hacia la carpeta de fuentes del cliente:
+```bash
+# Crear directorio si no existe y copiar
+mkdir -p client/src/wasm
+cp -r engine/pkg/* client/src/wasm/
+
+# Iniciar React
 cd client
+npm install
 npm run dev
+```
+
+## Script de "One-Shot" (WSL/Linux)
+
+Copia y pega este comando en tu terminal de WSL para limpiar, compilar y ejecutar todo el flujo automáticamente:
+```bash
+cd engine && cargo clean && wasm-pack build --target web && \
+rm -rf ../client/src/wasm && mkdir -p ../client/src/wasm && \
+cp -r pkg/* ../client/src/wasm/ && cd ../client && npm run dev
+```
+
+## Producción (Build)
+
+Compilar Rust en modo Release:
+```bash
+
+cd engine
+wasm-pack build --target web --release
+```
+Compilar Frontend:
+```bash
+cd client
+npm run build
+```
+
+## Troubleshooting (Errores Comunes)
+### RuntimeError: unreachable executed
+
+Si ves este error acompañado de un mensaje sobre time not implemented:
+
+Asegúrate de que el Cargo.toml tenga la feature js-sys activada para rust_xlsxwriter.
+
+En el código de Rust, utiliza workbook.set_creation_time(0); para evitar llamadas al reloj del sistema.
+
+Limpia el cache del navegador o abre una pestaña de incógnito para asegurar que se cargue el nuevo binario .wasm.
+
+## 📄 Licence
+Apache 2.0
