@@ -10,6 +10,7 @@ const App: React.FC = () => {
 
   const [uploadedFile, setUploadedFile] = useState<Uint8Array | null>(null);
   const [processedFile, setProcessedFile] = useState<Blob | null>(null);
+  const [hasPreview, setHasPreview] = useState(false);
 
   const [headerColor, setHeaderColor] = useState('#2563eb');
   const [autoFit, setAutoFit] = useState(false);
@@ -86,7 +87,8 @@ const App: React.FC = () => {
     setError(null);
 
     try {
-      const config = new PipelineConfig(true, autoFit, true);
+      // Create the PipelineConfig only after validation
+      const config = new PipelineConfig(true, autoFit, true, headerColor);
       const result = await process_excel(uploadedFile, config);
 
       const blob = new Blob([new Uint8Array(result)], {
@@ -94,6 +96,7 @@ const App: React.FC = () => {
       });
 
       setProcessedFile(blob);
+      setHasPreview(true);
     } catch (err) {
       console.error(err);
       setError('Error processing file.');
@@ -111,6 +114,37 @@ const App: React.FC = () => {
     a.download = 'processed_file.xlsx';
     a.click();
     URL.revokeObjectURL(url);
+  };
+
+  const previewFile = async () => {
+    if (!uploadedFile) {
+      setError('Primero sube un archivo.');
+      return;
+    }
+
+    if (!headerColor || !/^#[0-9A-Fa-f]{6}$/.test(headerColor)) {
+      setError('Selecciona un color de header válido (#RRGGBB).');
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      // Create the PipelineConfig only after validation
+      const config = new PipelineConfig(true, autoFit, true, headerColor);
+      const result = await process_excel(uploadedFile, config);
+
+      const blob = new Blob([new Uint8Array(result)], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      });
+
+      setProcessedFile(blob);
+      setHasPreview(true);
+    } catch (err) {
+      setError('Error generating preview');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop });
