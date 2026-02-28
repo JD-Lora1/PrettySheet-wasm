@@ -1,4 +1,4 @@
-# PrettySheet-wasm 🚀
+# CrystalSheet-wasm 🚀
 
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Deploy PrettySheet wasm](https://github.com/JD-Lora1/PrettySheet-WASM/actions/workflows/deploy.yml/badge.svg)](https://github.com/JD-Lora1/PrettySheet-WASM/actions)
@@ -92,4 +92,5 @@ wasm-pack test --node
 ```
 
 ## 📄 Licence
+
 Apache 2.0
